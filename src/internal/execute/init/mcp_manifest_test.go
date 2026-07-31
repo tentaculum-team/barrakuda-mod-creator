@@ -19,7 +19,7 @@ func TestMcpManifestJSON_DeclaresVersion2AndToolCapabilities(t *testing.T) {
 
 	var m manifest.Manifest
 	if err := json.Unmarshal([]byte(raw), &m); err != nil {
-		t.Fatalf("generated manifest.json is not valid JSON: %v", err)
+		t.Fatalf("generated specs.json is not valid JSON: %v", err)
 	}
 
 	if m.ManifestVersion != 2 {

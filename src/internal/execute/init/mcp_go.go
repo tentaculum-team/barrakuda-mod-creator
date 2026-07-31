@@ -50,7 +50,7 @@ func CreateGoMcpAt(dir, moduleName string, force bool) (string, error) {
 	}
 
 	return writeFiles(dir, map[string]string{
-		"manifest.json":   manifestJSON,
+		"specs.json":   manifestJSON,
 		"go.mod":          fmt.Sprintf(goMcpGoMod, moduleName),
 		"README.md":       fmt.Sprintf(goMcpReadme, moduleName),
 		"cmd/api/main.go": fmt.Sprintf(goMcpMain, moduleName, moduleName, moduleName),
@@ -75,7 +75,7 @@ var greetInputSchema = map[string]any{
 	"required": []string{"name"},
 }
 
-// mcpManifestJSON builds the shared manifest.json content for all 3 MCP
+// mcpManifestJSON builds the shared specs.json content for all 3 MCP
 // scaffolds (Go/Typescript/Python) — same shape regardless of language,
 // since `entry` just names the OS-resolved executable/script the app spawns.
 // tools must match exactly what the generated server's own tools/list
@@ -166,6 +166,20 @@ It exposes two example tools:
 
 See the comment block at the top of internal/mcp/server.go — it walks through
 adding a tool to the static table, writing its handler, and registering it.
+
+## Optional: user-editable config
+
+Drop a config.yaml next to specs.json to let users of this mod edit
+settings from Barrakuda's mod library. Flat key/value pairs only — no
+labels, descriptions, enums, or secret-masking, the widget is inferred
+from each value's own YAML type (string/number/boolean):
+
+    api_key: ""
+    max_tokens: 4000
+    modo: rapido
+
+No config.yaml means no config icon shows up for this mod — it's entirely
+optional.
 `
 
 const goMcpDomain = `package domain

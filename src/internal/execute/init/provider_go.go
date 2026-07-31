@@ -36,7 +36,7 @@ func CreateGoProviderAt(dir, moduleName string, force bool) (string, error) {
 	}
 
 	return writeFiles(dir, map[string]string{
-		"manifest.json":               manifestJSON,
+		"specs.json":               manifestJSON,
 		"go.mod":                      fmt.Sprintf(goProviderGoMod, moduleName),
 		"README.md":                   fmt.Sprintf(goProviderReadme, moduleName),
 		"cmd/api/main.go":             fmt.Sprintf(goProviderMain, moduleName),
@@ -44,7 +44,7 @@ func CreateGoProviderAt(dir, moduleName string, force bool) (string, error) {
 	})
 }
 
-// providerManifestJSON builds the manifest.json content for the Go provider
+// providerManifestJSON builds the specs.json content for the Go provider
 // scaffold. `entry` matches the module name — the server resolves the OS
 // suffix (`.exe` on Windows) itself, same convention as `mcp`'s `entry`.
 func providerManifestJSON(name string) (string, error) {

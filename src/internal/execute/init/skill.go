@@ -5,7 +5,7 @@ import (
 )
 
 // CreateSkill scaffolds a skill-type mod: content-only, no code execution.
-// manifest.json's skills[] lists the doc pages; barrakuda-software renders
+// specs.json's skills[] lists the doc pages; barrakuda-software renders
 // each as sanitized markdown once the mod is installed.
 func CreateSkill(name string) (string, error) {
 	m := manifest.Manifest{
@@ -25,7 +25,7 @@ func CreateSkill(name string) (string, error) {
 	}
 
 	return writeFiles(name, map[string]string{
-		"manifest.json": manifestJSON,
+		"specs.json": manifestJSON,
 		"skill.md":      "# " + name + "\n",
 	})
 }

@@ -8,6 +8,8 @@ import (
 
 	"barrakudaModKit/internal/manifest"
 	"barrakudaModKit/internal/mcpclient"
+	"barrakudaModKit/internal/modconfig"
+	"barrakudaModKit/internal/modlayout"
 
 	"github.com/spf13/cobra"
 )
@@ -16,18 +18,34 @@ var validateLiveBin string
 
 var validateCmd = &cobra.Command{
 	Use:   "validate <path>",
-	Short: "Validate a mod's manifest.json before zipping/publishing it",
+	Short: "Validate a mod's specs.json (+ config.yaml, if present) before zipping/publishing it",
 	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		path := args[0]
-		if info, err := os.Stat(path); err == nil && info.IsDir() {
-			path = filepath.Join(path, "manifest.json")
+		arg := args[0]
+		dir := arg
+		path := arg
+		legacy := false
+
+		if info, err := os.Stat(arg); err == nil && info.IsDir() {
+			var resolveErr error
+			path, legacy, resolveErr = modlayout.ResolveSpecsPath(dir)
+			if resolveErr != nil {
+				path = filepath.Join(dir, "manifest.json")
+				legacy = true
+			}
+		} else {
+			// arg pointed straight at a file — config.yaml, if any, is
+			// still looked up next to it, not next to the cwd.
+			dir = filepath.Dir(arg)
 		}
 
 		data, err := os.ReadFile(path)
 		if err != nil {
 			fmt.Printf("failed to read %s: %v\n", path, err)
 			os.Exit(1)
+		}
+		if legacy {
+			fmt.Println("warning: specs.json not found, falling back to legacy manifest.json — migrate when convenient")
 		}
 
 		var m manifest.Manifest
@@ -43,6 +61,15 @@ var validateCmd = &cobra.Command{
 		}
 		for _, w := range warnings {
 			fmt.Printf("warning: %s\n", w)
+		}
+
+		configPath, _ := modlayout.ResolveConfigPath(dir)
+		if configData, err := os.ReadFile(configPath); err == nil {
+			if _, err := modconfig.Parse(configData); err != nil {
+				fmt.Printf("%s is invalid: %v\n", configPath, err)
+				os.Exit(1)
+			}
+			fmt.Printf("%s is a valid config.yaml\n", configPath)
 		}
 
 		if validateLiveBin != "" {

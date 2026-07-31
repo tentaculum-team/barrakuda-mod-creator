@@ -34,13 +34,14 @@ func TestGenerators(t *testing.T) {
 		// of a \Uxxxxxxxx unicode escape, breaking the parse. CreateGoMcp
 		// itself (used by the TUI) still conflates dir and module name —
 		// harmless there since users type ordinary mod names, not paths.
-		{"go", func(root string) (string, error) { return CreateGoMcpAt(root, "gomcptest", false) }, []string{"manifest.json", "go.mod", "cmd/api/main.go", "internal/domain/greeting.go", "internal/repository/greeting_repository.go", "internal/service/greeting_service.go", "internal/mcp/server.go", "README.md"}},
-		{"ts", CreateTypescriptMcp, []string{"manifest.json", "package.json", "tsconfig.json", "src/domain/greeting.ts", "src/repository/greetingRepository.ts", "src/service/greetingService.ts", "src/mcp/server.ts", "src/index.ts", "README.md"}},
-		{"py", CreatePythonMcp, []string{"manifest.json", "main.py", "app/domain/greeting.py", "app/repository/greeting_repository.py", "app/service/greeting_service.py", "app/mcp/server.py", "README.md"}},
-		{"agent", CreateAgent, []string{"manifest.json", "docker/Dockerfile", "README.md"}},
-		{"provider", func(root string) (string, error) { return CreateGoProviderAt(root, "goprovidertest", false) }, []string{"manifest.json", "go.mod", "cmd/api/main.go", "internal/provider/server.go", "README.md"}},
-		{"theme", CreateTheme, []string{"manifest.json"}},
-		{"skill", CreateSkill, []string{"manifest.json", "skill.md"}},
+		{"go", func(root string) (string, error) { return CreateGoMcpAt(root, "gomcptest", false) }, []string{"specs.json", "go.mod", "cmd/api/main.go", "internal/domain/greeting.go", "internal/repository/greeting_repository.go", "internal/service/greeting_service.go", "internal/mcp/server.go", "README.md"}},
+		{"ts", CreateTypescriptMcp, []string{"specs.json", "package.json", "tsconfig.json", "src/domain/greeting.ts", "src/repository/greetingRepository.ts", "src/service/greetingService.ts", "src/mcp/server.ts", "src/index.ts", "README.md"}},
+		{"py", CreatePythonMcp, []string{"specs.json", "main.py", "app/domain/greeting.py", "app/repository/greeting_repository.py", "app/service/greeting_service.py", "app/mcp/server.py", "README.md"}},
+		{"agent", CreateAgent, []string{"specs.json", "docker/Dockerfile", "README.md"}},
+		{"agent-provider", func(root string) (string, error) { return CreateAgentProviderAt(root, "agentprovidertest", false) }, []string{"specs.json", "go.mod", "cmd/api/main.go", "internal/agent/server.go", "docker/Dockerfile", "README.md"}},
+		{"provider", func(root string) (string, error) { return CreateGoProviderAt(root, "goprovidertest", false) }, []string{"specs.json", "go.mod", "cmd/api/main.go", "internal/provider/server.go", "README.md"}},
+		{"theme", CreateTheme, []string{"specs.json"}},
+		{"skill", CreateSkill, []string{"specs.json", "skill.md"}},
 	}
 
 	for _, c := range cases {

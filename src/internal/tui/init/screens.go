@@ -20,6 +20,10 @@ func AgentInitialModel() ScaffoldModel {
 	return ScaffoldModel{Title: "Agent (Docker) — project name", Create: execute.CreateAgent}
 }
 
+func AgentProviderInitialModel() ScaffoldModel {
+	return ScaffoldModel{Title: "Agent Provider (Docker + chat) — project name", Create: execute.CreateAgentProvider}
+}
+
 func ThemeInitialModel() ScaffoldModel {
 	return ScaffoldModel{Title: "Theme — name", Create: execute.CreateTheme}
 }

@@ -1,5 +1,7 @@
-// Package manifest defines the mod manifest shape shared by every scaffold
+// Package manifest defines the mod specs.json shape shared by every scaffold
 // (mcp/skill/agent/theme) and the runtime that consumes it (barrakuda-software).
+// Editable per-mod settings (config.yaml) live in a separate file/package —
+// see internal/modconfig — deliberately not part of this struct.
 // See docs/manifest-schema.md for the full field-by-field spec.
 package manifest
 
@@ -29,10 +31,15 @@ type Manifest struct {
 	Description string   `json:"description,omitempty"`
 	Icon        string   `json:"icon,omitempty"`
 	Banners     []string `json:"banners,omitempty"`
-	Author      string   `json:"author,omitempty"`
-	License     string   `json:"license,omitempty"`
-	Type        Type     `json:"type"`
-	Tags        []string `json:"tags,omitempty"`
+	// DefaultColor is the extension icon's background color (e.g.
+	// "#ffffff"), read from .barrakuda/specs.json at any Type. Empty =
+	// transparent background; absent entirely = the server falls back to
+	// its own fixed neutral gray for self-service mods.
+	DefaultColor string   `json:"default_color,omitempty"`
+	Author       string   `json:"author,omitempty"`
+	License      string   `json:"license,omitempty"`
+	Type         Type     `json:"type"`
+	Tags         []string `json:"tags,omitempty"`
 
 	// ManifestVersion gates the structured-capability checks in Validate:
 	// absent/0/1 = legacy shape (tools[].capabilities not required), 2 = new
@@ -73,6 +80,27 @@ type Manifest struct {
 	// yet — see docs/manifest-schema.md "contributions/shortcuts" section.
 	Contributions []Contribution `json:"contributions,omitempty"`
 	Shortcuts     []Shortcut     `json:"shortcuts,omitempty"`
+
+	// agent-only. Presence discriminates "this agent mod is a chat-selectable
+	// AI provider" from a plain generic Docker sidecar (type agent without
+	// this block keeps working exactly as before).
+	AgentProvider *AgentProviderConfig `json:"agent_provider,omitempty"`
+}
+
+// AgentProviderConfig marks a `type: agent` mod as selectable in the chat AI
+// picker. ChatPort must match one of Docker.Ports[].Container: that's the
+// port barrakuda-software calls the mod's inbound chat contract on
+// (GET /barrakuda/v1/health, POST /barrakuda/v1/chat — see
+// docs/manifest-schema.md).
+type AgentProviderConfig struct {
+	ChatPort int `json:"chat_port"`
+	// DefaultModel preselects a model in the agent's submenu on first
+	// install; the user's later choice overrides it and persists.
+	DefaultModel string `json:"default_model,omitempty"`
+	// SupportedModelProviders filters which unlocked models show in the
+	// agent's submenu (matches ai_models provider ids, e.g. "anthropic").
+	// Omitted/empty = show all unlocked models.
+	SupportedModelProviders []string `json:"supported_model_providers,omitempty"`
 }
 
 type Tool struct {
@@ -125,11 +153,21 @@ type DockerConfig struct {
 	Ports      []DockerPort      `json:"ports,omitempty"`
 	Resources  DockerResources   `json:"resources,omitzero"`
 	Env        map[string]string `json:"env,omitempty"`
+	Volumes    []DockerVolume    `json:"volumes,omitempty"`
 }
 
 type DockerPort struct {
 	Host      int `json:"host"`
 	Container int `json:"container"`
+}
+
+// DockerVolume mounts a persistent, app-managed directory into the
+// container. Name is a slug, not a path: barrakuda-software provisions the
+// actual host directory under app_data_dir/mods/<mod-id>/volumes/<name> — a
+// mod manifest can never name an arbitrary host path.
+type DockerVolume struct {
+	Name      string `json:"name"`
+	Container string `json:"container"`
 }
 
 type DockerResources struct {
@@ -191,6 +229,9 @@ func (m *Manifest) Validate() ([]string, error) {
 		if m.Docker == nil || m.Docker.Dockerfile == "" {
 			return nil, fmt.Errorf("agent manifest requires docker.dockerfile")
 		}
+		if err := m.validateAgentProvider(); err != nil {
+			return nil, err
+		}
 	case TypeSkill:
 		if len(m.Skills) == 0 {
 			return nil, fmt.Errorf("skill manifest requires at least one entry in skills")
@@ -237,6 +278,25 @@ func (m *Manifest) validateToolCapabilities() ([]string, error) {
 	}
 
 	return nil, nil
+}
+
+// validateAgentProvider checks that ChatPort, when an agent_provider block
+// is declared, maps to a real exposed container port — otherwise
+// barrakuda-software would have nothing to call for the inbound chat
+// contract.
+func (m *Manifest) validateAgentProvider() error {
+	if m.AgentProvider == nil {
+		return nil
+	}
+	if m.AgentProvider.ChatPort == 0 {
+		return fmt.Errorf("agent_provider requires chat_port")
+	}
+	for _, p := range m.Docker.Ports {
+		if p.Container == m.AgentProvider.ChatPort {
+			return nil
+		}
+	}
+	return fmt.Errorf("agent_provider.chat_port %d has no matching docker.ports[].container entry", m.AgentProvider.ChatPort)
 }
 
 // DeriveLegacyPermission computes the coarse requires_permission fallback

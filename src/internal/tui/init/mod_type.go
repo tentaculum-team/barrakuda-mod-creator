@@ -48,7 +48,7 @@ func (m ModTypeModel) Update(msg bubbleTea.Msg) (bubbleTea.Model, bubbleTea.Cmd)
 				return LangViewInitialModel(), nil
 
 			case 1:
-				return AgentInitialModel(), nil
+				return AgentKindInitialModel(), nil
 
 			case 2:
 				return ThemeInitialModel(), nil

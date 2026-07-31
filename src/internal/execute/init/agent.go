@@ -4,7 +4,7 @@ import (
 	"barrakudaModKit/internal/manifest"
 )
 
-// CreateAgent scaffolds an agent-type mod: a manifest.json declaring a
+// CreateAgent scaffolds an agent-type mod: a specs.json declaring a
 // docker block (Dockerfile + ports/resources/env) plus a starter Dockerfile.
 // barrakuda-software builds and runs this image per the docker block —
 // nothing else about the mod needs app code changes.
@@ -13,8 +13,6 @@ func CreateAgent(name string) (string, error) {
 		Name:        name,
 		Version:     "0.0.1",
 		Description: name + " agent mod",
-		Icon:        "./img/icon.png",
-		Banners:     []string{"./img/banner-1.png"},
 		License:     "MIT",
 		Type:        manifest.TypeAgent,
 		Tags:        []string{"barrakuda", "agent"},
@@ -33,9 +31,9 @@ func CreateAgent(name string) (string, error) {
 	}
 
 	return writeFiles(name, map[string]string{
-		"manifest.json":     manifestJSON,
+		"specs.json":        manifestJSON,
 		"docker/Dockerfile": agentDockerfile,
-		"README.md":         "# " + name + "\n\nAgent mod: packaged as a Docker image, built from docker/Dockerfile and run by barrakuda-software per the `docker` block in manifest.json.\n",
+		"README.md":         "# " + name + "\n\nAgent mod: packaged as a Docker image, built from docker/Dockerfile and run by barrakuda-software per the `docker` block in specs.json.\n",
 	})
 }
 

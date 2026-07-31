@@ -4,7 +4,7 @@ import (
 	"barrakudaModKit/internal/manifest"
 )
 
-// CreateTheme scaffolds a theme-type mod: a single manifest.json carrying
+// CreateTheme scaffolds a theme-type mod: a single specs.json carrying
 // colors/fonts/icons inline (no separate theme.json — barrakuda-software
 // reads theme tokens straight off extensions.manifest).
 func CreateTheme(name string) (string, error) {
@@ -22,6 +22,6 @@ func CreateTheme(name string) (string, error) {
 	}
 
 	return writeFiles(name, map[string]string{
-		"manifest.json": manifestJSON,
+		"specs.json": manifestJSON,
 	})
 }

@@ -23,7 +23,7 @@ func CreatePythonMcp(name string) (string, error) {
 	}
 
 	return writeFiles(name, map[string]string{
-		"manifest.json": manifestJSON,
+		"specs.json": manifestJSON,
 		"README.md":     fmt.Sprintf(pyMcpReadme, name),
 		"main.py":       pyMcpMain,
 
@@ -70,6 +70,20 @@ Paste these lines (one JSON object per line) into the running process's stdin:
     {"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"manual","version":"0"}}}
     {"jsonrpc":"2.0","method":"notifications/initialized"}
     {"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"greet","arguments":{"name":"Ada"}}}
+
+## Optional: user-editable config
+
+Drop a config.yaml next to specs.json to let users of this mod edit
+settings from Barrakuda's mod library. Flat key/value pairs only — no
+labels, descriptions, enums, or secret-masking, the widget is inferred
+from each value's own YAML type (string/number/boolean):
+
+    api_key: ""
+    max_tokens: 4000
+    modo: rapido
+
+No config.yaml means no config icon shows up for this mod — it's entirely
+optional.
 `
 
 const pyMcpDomain = `from dataclasses import dataclass
